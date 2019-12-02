@@ -82,14 +82,33 @@ namespace Puzzle
 			}
 		}
 
-		private void CropImage_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        bool _isDragging = false;
+        Image _selectedBitmap = null;
+        Point _lastPosition;
+        private void CropImage_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
 		{
-			throw new NotImplementedException();
-		}
+            _isDragging = false;
+            var position = e.GetPosition(this);
+
+            int x = (int)(position.X - LeftPadding) / (SideHeight + 2) * (SideHeight + 2) + LeftPadding;
+            int y = (int)(position.Y - TopPadding) / (SideHeight + 2) * (SideHeight + 2) + TopPadding;
+
+            Canvas.SetLeft(_selectedBitmap, x);
+            Canvas.SetTop(_selectedBitmap, y);
+
+            var image = sender as Image;
+            var (i, j) = image.Tag as Tuple<int, int>;
+
+            MessageBox.Show($"{i} - {j}");
+        }
 
 		private void CropImage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
-			throw new NotImplementedException();
-		}
+            _isDragging = true;
+            _selectedBitmap = sender as Image;
+            _lastPosition = e.GetPosition(this);
+        }
+
+
 	}
 }
