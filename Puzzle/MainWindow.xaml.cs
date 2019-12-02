@@ -38,18 +38,30 @@ namespace Puzzle
 			{
 				var image = new Image();
 				var source = new BitmapImage(new Uri(screen.FileName, UriKind.Absolute));
+				image.Stretch = Stretch.Fill;
+				double ratio = source.Height / source.Width; //ti le cao / dai
+				if (ratio >= 1)
+				{
+					image.Height = 350;
+					image.Width = 350 * 1 / ratio;
+				}
+				else
+				{
+					image.Width = 350;
+					image.Height = 350 * ratio;
+				}
 				image.Source = source;
 				uiCanvas.Children.Add(image);
-				Canvas.SetLeft(image, LeftPadding * 2 + Columns * SideHeight);
+				Canvas.SetLeft(image, LeftPadding + Columns * SideHeight + 80);
 				Canvas.SetTop(image, TopPadding);
 				int side = 0; //cạnh hình vuông nhỏ
 				if(source.Width < source.Height)
 				{
-					side = (int) source.Width * 1 / 3;
+					side = (int) source.Width * 1 / Columns;
 				}
 				else
 				{
-					side = (int) source.Height * 1 / 3;
+					side = (int) source.Height * 1 / Rows;
 				}
 				image.Stretch = Stretch.Fill;
 				for (int i = 0; i < 3; i++)
@@ -81,15 +93,28 @@ namespace Puzzle
 				}
 			}
 		}
-
+		bool _isDragging = false;
+		Image _selectedImage = null;
 		private void CropImage_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
 		{
-			throw new NotImplementedException();
+			if (_isDragging)
+			{
+				var dropDownImage = sender as Image;
+				Tuple<int, int> tag = dropDownImage.Tag as Tuple<int, int>;
+				var dropDownImageSource = dropDownImage.Source;
+
+				dropDownImage.Source = _selectedImage.Source;
+				dropDownImage.Tag = _selectedImage.Tag;
+
+				_selectedImage.Source = dropDownImageSource;
+				_selectedImage.Tag = tag;
+			}
 		}
 
 		private void CropImage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
-			throw new NotImplementedException();
+			_isDragging = true;
+			_selectedImage = sender as Image;
 		}
 	}
 }
