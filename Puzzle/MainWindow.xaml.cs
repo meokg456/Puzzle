@@ -26,62 +26,70 @@ namespace Puzzle
 		{
 			InitializeComponent();
 		}
+		const int LeftPadding = 10;
+		const int TopPadding = 10;
+		const int Rows = 3;
+		const int Columns = 3;
+		const int SideHeight = 100;
+		private void NewImageMenuItem_Click(object sender, RoutedEventArgs e)
+		{
+			var screen = new OpenFileDialog();
+			if (screen.ShowDialog() == true)
+			{
+				var image = new Image();
+				var source = new BitmapImage(new Uri(screen.FileName, UriKind.Absolute));
+				image.Source = source;
+				uiCanvas.Children.Add(image);
+				Canvas.SetLeft(image, LeftPadding * 2 + Columns * SideHeight);
+				Canvas.SetTop(image, TopPadding);
+				int side = 0; //cạnh hình vuông nhỏ
+				if(source.Width < source.Height)
+				{
+					side = (int) source.Width * 1 / 3;
+				}
+				else
+				{
+					side = (int) source.Height * 1 / 3;
+				}
+				image.Stretch = Stretch.Fill;
+				for (int i = 0; i < 3; i++)
+				{
+					for (int j = 0; j < 3; j++)
+					{
+						if (!((i == 2) && (j == 2)))
+						{
+							//Debug.WriteLine($"Len = {len}");
+							var rect = new Int32Rect(j * side, i * side, side, side);
+							var cropBitmap = new CroppedBitmap(source, rect);
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            
-        }
+							var cropImage = new Image();
+							cropImage.Stretch = Stretch.Fill;
+							cropImage.Width = SideHeight;
+							cropImage.Height = SideHeight;
+							cropImage.Source = cropBitmap;
+							uiCanvas.Children.Add(cropImage);
+							Canvas.SetLeft(cropImage, LeftPadding + j * (SideHeight + 2));
+							Canvas.SetTop(cropImage, TopPadding + i * (SideHeight + 2));
 
-        const int startX = 30;
-        const int startY = 30;
-        const int width = 50;
-        const int height = 50;
 
-        private void MenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            var screen=new OpenFileDialog();
+							cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
+							cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
+							cropImage.Tag = new Tuple<int, int>(i, j);
+							//cropImage.MouseLeftButtonUp
+						}
+					}
+				}
+			}
+		}
 
-            if(screen.ShowDialog() == true)
-            {
-                var source = new BitmapImage(
-                    new Uri(screen.FileName, UriKind.Absolute));
-                Debug.WriteLine($"{source.Width} - {source.Height}");
-                previewImage.Width = 300;
-                previewImage.Height = 240;
-                previewImage.Source = source;
-                //bug.WriteLine();
+		private void CropImage_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+		{
+			throw new NotImplementedException();
+		}
 
-                Canvas.SetLeft(previewImage, 200);
-                Canvas.SetTop(previewImage, 20);
-
-                // Bat dau cat thanh 9 manh
-
-                for (int i = 0; i < 3; i++)
-                {
-                    for (int j = 0; j < 3; j++)
-                    {
-                        if (!((i == 2) && (j == 2)))
-                        {
-                            var h = (int)source.Height;
-                            //var w = (int)source.Height;
-                            var w = (int)source.Width;
-                            //Debug.WriteLine($"Len = {len}");
-                            var rect = new Int32Rect(j * w, i * h, w, h);
-                            var cropBitmap = new CroppedBitmap(source,
-                                rect);
-
-                            var cropImage = new Image();
-                            cropImage.Stretch = Stretch.Fill;
-                            cropImage.Width = width;
-                            cropImage.Height = height;
-                            cropImage.Source = cropBitmap;
-                            canvas.Children.Add(cropImage);
-                            Canvas.SetLeft(cropImage, startX + j * (width + 2));
-                            Canvas.SetTop(cropImage, startY + i * (height + 2));
-                        }
-                    }
-                }
-            }
-        }
-    }
+		private void CropImage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			throw new NotImplementedException();
+		}
+	}
 }

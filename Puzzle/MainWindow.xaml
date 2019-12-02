@@ -5,15 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Puzzle"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
+        Title="MainWindow" Height="450" Width="800">
 	<DockPanel LastChildFill="True">
 		<Menu DockPanel.Dock="Top">
-			<MenuItem Header="New image" Click="MenuItem_Click"></MenuItem>
+			<MenuItem Header="New image" Click="NewImageMenuItem_Click"></MenuItem>
 		</Menu>
-		<UniformGrid>
-            <Canvas Name="canvas">
-                <Image x:Name="previewImage"/>
-            </Canvas>
-        </UniformGrid>
+		<Canvas Name="uiCanvas">
+		</Canvas>
 	</DockPanel>
 </Window>
