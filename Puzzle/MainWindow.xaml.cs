@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,6 +37,8 @@ namespace Puzzle
 		const int SideHeight = 100;
         int[,] _a = new int[Rows, Columns];
         Image[,] _pieces = new Image[Rows, Columns];
+        //Image imageRoot;
+        string dirImgRoot;
 		private void NewImageMenuItem_Click(object sender, RoutedEventArgs e)
 		{
 			var screen = new OpenFileDialog();
@@ -59,8 +62,11 @@ namespace Puzzle
 				uiCanvas.Children.Add(image);
 				Canvas.SetLeft(image, LeftPadding + Columns * SideHeight + 80);
 				Canvas.SetTop(image, TopPadding);
+                //imageRoot = image;
+                dirImgRoot = screen.FileName;
 
-				cropImage(source);
+
+                cropImage(source);
 				
                 Shuffle();
 			}
@@ -136,7 +142,7 @@ namespace Puzzle
             int emptyI = Rows - 1;
             int emptyJ = Columns -1;
             Random rng = new Random();
-            for(int i = 0; i < 1000; i++)
+            for(int i = 0; i < 100; i++)
             {
                 var move = rng.Next(4);
                 if(emptyI + di[move] >= 0 && emptyI + di[move] < Rows && emptyJ + dj[move] >= 0 && emptyJ + dj[move] < Columns)
@@ -224,7 +230,7 @@ namespace Puzzle
 		}
         
         DispatcherTimer timer = new DispatcherTimer();
-        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        private void PlayMenuItem_Click(object sender, RoutedEventArgs e)
         {
             timer.Interval = TimeSpan.FromSeconds(1);
             timer.Tick += timer_Tick;
@@ -252,6 +258,66 @@ namespace Puzzle
             var time = $"{minutes}:{seconds}";
             lblTime.Content = time;
             seconds--;
+        }
+
+        private void SaveMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            const string filename = "Save.txt";
+
+            var write = new StreamWriter(filename);
+            //Dòng đầu tiên là source của hình gốc
+            //write.WriteLine($"{imageRoot.Source} {imageRoot.Width} {imageRoot.Height}");
+            write.WriteLine(dirImgRoot);
+
+            //Theo sau la ma tran bieu dien game
+            for (int i = 0; i < Rows; i++)
+            {
+                for (int j = 0; j < Columns; j++)
+                {
+                    write.Write($"{_pieces[i, j].Source}-{_a[i, j]}");
+                    if (j != (Columns - 1))
+                    {
+                        write.Write(" ");
+                    }
+                }
+                write.WriteLine("");
+            }
+
+            write.Close();
+            MessageBox.Show("Game is saved!");
+        }
+
+        private void LoadMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var screen = new OpenFileDialog();
+            if (screen.ShowDialog() == true)
+            {
+                var filename = screen.FileName;
+
+                var reader = new StreamReader(filename);
+                var firstLine = reader.ReadLine();
+
+                var image = new Image();
+                var source = new BitmapImage(new Uri(firstLine, UriKind.Absolute));
+                image.Stretch = Stretch.Fill;
+                double ratio = source.Height / source.Width; //ti le cao / dai
+                if (ratio >= 1)
+                {
+                    image.Height = 350;
+                    image.Width = 350 * 1 / ratio;
+                }
+                else
+                {
+                    image.Width = 350;
+                    image.Height = 350 * ratio;
+                }
+                image.Source = source;
+                uiCanvas.Children.Add(image);
+                Canvas.SetLeft(image, LeftPadding + Columns * SideHeight + 80);
+                Canvas.SetTop(image, TopPadding);
+                //imageRoot = image;
+                dirImgRoot = screen.FileName;
+            }
         }
     }
 }

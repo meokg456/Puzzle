@@ -9,7 +9,9 @@
     <DockPanel LastChildFill="True">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="New image" Click="NewImageMenuItem_Click"></MenuItem>
-            <MenuItem Header="Play" Click="MenuItem_Click"></MenuItem>
+            <MenuItem Header="Play" Click="PlayMenuItem_Click"></MenuItem>
+            <MenuItem Header="Save" Click="SaveMenuItem_Click"></MenuItem>
+            <MenuItem Header="Load" Click="LoadMenuItem_Click"></MenuItem>
         </Menu>
         <Canvas Name="uiCanvas">
             <Label Name="lblTime" FontSize="48" Width="240" Height="92" HorizontalAlignment="Center" VerticalAlignment="Center" Canvas.Left="431" Canvas.Top="247" />
