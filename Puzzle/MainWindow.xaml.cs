@@ -148,7 +148,7 @@ namespace Puzzle
                 }
             }
 
-        //}
+        }
 		private void CropImage_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
 		{
 			if (_isDragging)
@@ -157,6 +157,7 @@ namespace Puzzle
                 swapToSource(dropDownImage);
 				if (checkWin() == true)
 				{
+                    timer.Stop();
 					MessageBox.Show("You won!!!", "Congratulation");
 				}
 
@@ -230,8 +231,8 @@ namespace Puzzle
             timer.Start();
         }
 
-        int minutes = 0;
-        int seconds = 10;
+        int minutes = 2;
+        int seconds = 59;
         void timer_Tick(object sender, EventArgs e)
         {
             if (seconds == -1)
