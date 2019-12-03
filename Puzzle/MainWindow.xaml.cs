@@ -56,67 +56,74 @@ namespace Puzzle
 				uiCanvas.Children.Add(image);
 				Canvas.SetLeft(image, LeftPadding + Columns * SideHeight + 80);
 				Canvas.SetTop(image, TopPadding);
-				int side = 0; //cạnh hình vuông nhỏ
-				if(source.Width < source.Height)
-				{
-					side = (int) source.Width * 1 / Columns;
-				}
-				else
-				{
-					side = (int) source.Height * 1 / Rows;
-				}
-				image.Stretch = Stretch.Fill;
-				for (int i = 0; i < Rows; i++)
-				{
-					for (int j = 0; j < Columns; j++)
-					{
-						if (!((i == Rows - 1) && (j == Columns - 1)))
-						{
-							//Debug.WriteLine($"Len = {len}");
-							var rect = new Int32Rect(j * side, i * side, side, side);
-							var cropBitmap = new CroppedBitmap(source, rect);
 
-							var cropImage = new Image();
-							cropImage.Stretch = Stretch.Fill;
-							cropImage.Width = SideHeight;
-							cropImage.Height = SideHeight;
-							cropImage.Source = cropBitmap;
-							uiCanvas.Children.Add(cropImage);
-							Canvas.SetLeft(cropImage, LeftPadding + j * (SideHeight + 2));
-							Canvas.SetTop(cropImage, TopPadding + i * (SideHeight + 2));
-
-
-							cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
-							cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
-                            cropImage.Tag = new Tuple<int, int>(i, j);
-                            _a[i, j] = i * Rows + j + 1;
-                            _pieces[i, j] = cropImage;
-							//cropImage.MouseLeftButtonUp
-						}
-                        else
-                        {
-                            
-                            var cropImage = new Image();
-                            cropImage.Stretch = Stretch.Fill;
-                            cropImage.Width = SideHeight;
-                            cropImage.Height = SideHeight;
-                            cropImage.Source = new BitmapImage(new Uri("Blank.png", UriKind.Relative));
-                            uiCanvas.Children.Add(cropImage);
-                            Canvas.SetLeft(cropImage, LeftPadding + j * (SideHeight + 2));
-                            Canvas.SetTop(cropImage, TopPadding + i * (SideHeight + 2));
-
-                            cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
-                            cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
-                            cropImage.Tag = new Tuple<int, int>(i, j);
-                            _a[i, j] = 0;
-                            _pieces[i, j] = cropImage;
-
-                        }
-					}
-				}
+				cropImage(source);
+				
                 Shuffle();
 			}
 		}
+
+		private void cropImage(BitmapImage source)
+		{
+			int side = 0; //cạnh hình vuông nhỏ
+			if (source.Width < source.Height)
+			{
+				side = (int)source.Width * 1 / Columns;
+			}
+			else
+			{
+				side = (int)source.Height * 1 / Rows;
+			}
+			for (int i = 0; i < Rows; i++)
+			{
+				for (int j = 0; j < Columns; j++)
+				{
+					if (!((i == Rows - 1) && (j == Columns - 1)))
+					{
+						//Debug.WriteLine($"Len = {len}");
+						var rect = new Int32Rect(j * side, i * side, side, side);
+						var cropBitmap = new CroppedBitmap(source, rect);
+
+						var cropImage = new Image();
+						cropImage.Stretch = Stretch.Fill;
+						cropImage.Width = SideHeight;
+						cropImage.Height = SideHeight;
+						cropImage.Source = cropBitmap;
+						uiCanvas.Children.Add(cropImage);
+						Canvas.SetLeft(cropImage, LeftPadding + j * (SideHeight + 2));
+						Canvas.SetTop(cropImage, TopPadding + i * (SideHeight + 2));
+
+
+						cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
+						cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
+						cropImage.Tag = new Tuple<int, int>(i, j);
+						_a[i, j] = i * Rows + j + 1;
+						_pieces[i, j] = cropImage;
+						//cropImage.MouseLeftButtonUp
+					}
+					else
+					{
+
+						var cropImage = new Image();
+						cropImage.Stretch = Stretch.Fill;
+						cropImage.Width = SideHeight;
+						cropImage.Height = SideHeight;
+						cropImage.Source = new BitmapImage(new Uri("Blank.png", UriKind.Relative));
+						uiCanvas.Children.Add(cropImage);
+						Canvas.SetLeft(cropImage, LeftPadding + j * (SideHeight + 2));
+						Canvas.SetTop(cropImage, TopPadding + i * (SideHeight + 2));
+
+						cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
+						cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
+						cropImage.Tag = new Tuple<int, int>(i, j);
+						_a[i, j] = 0;
+						_pieces[i, j] = cropImage;
+
+					}
+				}
+			}
+		}
+
 		bool _isDragging = false;
 		Image _selectedImage = null;
         private void Shuffle()
@@ -129,12 +136,12 @@ namespace Puzzle
             for(int i = 0; i < 1000; i++)
             {
                 var move = rng.Next(4);
-                if(di[move] >= 0 && di[move] < Rows && dj[move] >= 0 && dj[move] < Columns)
+                if(emptyI + di[move] >= 0 && emptyI + di[move] < Rows && emptyJ + dj[move] >= 0 && emptyJ + dj[move] < Columns)
                 {
                     _selectedImage = _pieces[emptyI + di[move], emptyJ + dj[move]];
                     swapToSource(_pieces[emptyI, emptyJ]);
-                    emptyI = di[move];
-                    emptyJ = dj[move];
+                    emptyI = emptyI + di[move];
+                    emptyJ = emptyJ + dj[move];
                 }
             }
 
@@ -145,7 +152,11 @@ namespace Puzzle
 			{
 				var dropDownImage = sender as Image;
                 swapToSource(dropDownImage);
-                
+				if (checkWin() == true)
+				{
+					MessageBox.Show("You won!!!", "Congratulation");
+				}
+
 			}
             _isDragging = !_isDragging;
 		}
@@ -165,10 +176,7 @@ namespace Puzzle
                     var dropDownImageSource = dropDownImage.Source;
                     dropDownImage.Source = _selectedImage.Source;
                     _selectedImage.Source = dropDownImageSource;
-                    if (checkWin() == true)
-                    {
-                        MessageBox.Show("You won!!!", "Congratulation");
-                    }
+                    
                 }
             }
         }
