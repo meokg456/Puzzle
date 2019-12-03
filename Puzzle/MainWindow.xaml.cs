@@ -96,36 +96,60 @@ namespace Puzzle
 
 						cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
 						cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
+						cropImage.PreviewMouseMove += CropImage_PreviewMouseMove;
 						cropImage.Tag = new Tuple<int, int>(i, j);
 						_a[i, j] = i * Rows + j + 1;
 						_pieces[i, j] = cropImage;
 						//cropImage.MouseLeftButtonUp
 					}
-					else
-					{
+					//else
+					//{
 
-						var cropImage = new Image();
-						cropImage.Stretch = Stretch.Fill;
-						cropImage.Width = SideHeight;
-						cropImage.Height = SideHeight;
-						cropImage.Source = new BitmapImage(new Uri("Blank.png", UriKind.Relative));
-						uiCanvas.Children.Add(cropImage);
-						Canvas.SetLeft(cropImage, LeftPadding + j * (SideHeight + 2));
-						Canvas.SetTop(cropImage, TopPadding + i * (SideHeight + 2));
+					//	var cropImage = new Image();
+					//	cropImage.Stretch = Stretch.Fill;
+					//	cropImage.Width = SideHeight;
+					//	cropImage.Height = SideHeight;
+					//	cropImage.Source = new BitmapImage(new Uri("Blank.png", UriKind.Relative));
+					//	uiCanvas.Children.Add(cropImage);
+					//	Canvas.SetLeft(cropImage, LeftPadding + j * (SideHeight + 2));
+					//	Canvas.SetTop(cropImage, TopPadding + i * (SideHeight + 2));
 
-						cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
-						cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
-						cropImage.Tag = new Tuple<int, int>(i, j);
-						_a[i, j] = 0;
-						_pieces[i, j] = cropImage;
+					//	cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
+					//	cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
+					//	//cropImage.PreviewMouseMove += CropImage_PreviewMouseMove;
+					//	cropImage.Tag = new Tuple<int, int>(i, j);
+					//	_a[i, j] = 0;
+					//	_pieces[i, j] = cropImage;
 
-					}
+					//}
 				}
+			}
+		}
+
+		private void CropImage_PreviewMouseMove(object sender, MouseEventArgs e)
+		{
+			if (_isDragging)
+			{
+				var position = e.GetPosition(this);
+
+				var dx = position.X - _lastPosition.X;
+				var dy = position.Y - _lastPosition.Y;
+
+				var lastLeft = Canvas.GetLeft(_selectedImage);
+				var lastTop = Canvas.GetTop(_selectedImage);
+				var image = sender as Image;
+				this.Title = $"{position.X} : {position.Y}";
+				Canvas.SetLeft(_selectedImage, lastLeft + dx);
+				Canvas.SetTop(_selectedImage, lastTop + dy);
+
+
+				_lastPosition = position;
 			}
 		}
 
 		bool _isDragging = false;
 		Image _selectedImage = null;
+		Point _lastPosition;
         private void Shuffle()
         {
             int[] di = new int[] { 0, 0, -1, 1 };
@@ -139,10 +163,13 @@ namespace Puzzle
                 if(emptyI + di[move] >= 0 && emptyI + di[move] < Rows && emptyJ + dj[move] >= 0 && emptyJ + dj[move] < Columns)
                 {
                     _selectedImage = _pieces[emptyI + di[move], emptyJ + dj[move]];
-                    swapToSource(_pieces[emptyI, emptyJ]);
-                    emptyI = emptyI + di[move];
+					swapToSelectedItem(new Tuple<int, int>(emptyI, emptyJ));
+					_pieces[emptyI + di[move], emptyJ + dj[move]] = null;
+					_pieces[emptyI, emptyJ] = _selectedImage;
+					emptyI = emptyI + di[move];
                     emptyJ = emptyJ + dj[move];
-                }
+
+				}
             }
 
         }
@@ -151,35 +178,52 @@ namespace Puzzle
 			if (_isDragging)
 			{
 				var dropDownImage = sender as Image;
-                swapToSource(dropDownImage);
-				if (checkWin() == true)
+				var position = e.GetPosition(this);
+				var j = (int)(position.X - LeftPadding) / (SideHeight + 2);
+				var i = (int)(position.Y - TopPadding) / (SideHeight + 2);
+				if (swapToSelectedItem(new Tuple<int,int>(i,j))) 
 				{
-					MessageBox.Show("You won!!!", "Congratulation");
+					if (checkWin() == true)
+					{
+						MessageBox.Show("You won!!!", "Congratulation");
+					}
+					Canvas.SetZIndex(_selectedImage, 1);
 				}
+				_isDragging = false;
 
 			}
-            _isDragging = !_isDragging;
+			
 		}
+		private void CropImage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			_isDragging = true;
+			_selectedImage = sender as Image;
+			_lastPosition = e.GetPosition(this);
+			Canvas.SetZIndex(_selectedImage, 2);
+		}
+		private bool swapToSelectedItem(Tuple<int, int> desTag)
+		{
+			var i = desTag.Item1;
+			var j = desTag.Item2;
+			var sourceTag = _selectedImage.Tag as Tuple<int, int>;
+			if (i >= 0 && i < Rows && j >= 0 && j < Columns)
+				if (_a[i, j] == 0)
+				{
+					if (nextTo(sourceTag, desTag))
+					{
+						_a[i, j] = _a[sourceTag.Item1, sourceTag.Item2];
+						_a[sourceTag.Item1, sourceTag.Item2] = 0;
+						Canvas.SetLeft(_selectedImage, LeftPadding + j * (SideHeight + 2));
+						Canvas.SetTop(_selectedImage, TopPadding + i * (SideHeight + 2));
+						_selectedImage.Tag = desTag;
+						return true;
+					}
 
-        private void swapToSource(Image dropDownImage)
-        {
-            var desTag = dropDownImage.Tag as Tuple<int, int>;
-            var i = desTag.Item1;
-            var j = desTag.Item2;
-            if (_a[i, j] == 0)
-            {
-                var sourceTag = _selectedImage.Tag as Tuple<int, int>;
-                if (nextTo(sourceTag, desTag))
-                {
-                    _a[i, j] = _a[sourceTag.Item1, sourceTag.Item2];
-                    _a[sourceTag.Item1, sourceTag.Item2] = 0;
-                    var dropDownImageSource = dropDownImage.Source;
-                    dropDownImage.Source = _selectedImage.Source;
-                    _selectedImage.Source = dropDownImageSource;
-                    
-                }
-            }
-        }
+				} 
+			Canvas.SetLeft(_selectedImage, LeftPadding + sourceTag.Item2 * (SideHeight + 2));
+			Canvas.SetTop(_selectedImage, TopPadding + sourceTag.Item1 * (SideHeight + 2));
+			return false;
+		}
 
         private bool checkWin()
         {
@@ -212,11 +256,6 @@ namespace Puzzle
             return false;
         }
 
-        private void CropImage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-		{
-			_isDragging = true;
-			_selectedImage = sender as Image;
-            
-		}
+       
 	}
 }
