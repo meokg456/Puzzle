@@ -31,7 +31,9 @@ namespace Puzzle
 		const int Rows = 3;
 		const int Columns = 3;
 		const int SideHeight = 100;
-		private void NewImageMenuItem_Click(object sender, RoutedEventArgs e)
+        int[,] _a;
+        Image[,] _images;
+        private void NewImageMenuItem_Click(object sender, RoutedEventArgs e)
 		{
 			var screen = new OpenFileDialog();
 			if (screen.ShowDialog() == true)
@@ -64,6 +66,7 @@ namespace Puzzle
 					side = (int) source.Height * 1 / Rows;
 				}
 				image.Stretch = Stretch.Fill;
+                int check = 1;
 				for (int i = 0; i < 3; i++)
 				{
 					for (int j = 0; j < 3; j++)
@@ -83,10 +86,13 @@ namespace Puzzle
 							Canvas.SetLeft(cropImage, LeftPadding + j * (SideHeight + 2));
 							Canvas.SetTop(cropImage, TopPadding + i * (SideHeight + 2));
 
+                            _images[i, j] = cropImage;
 
 							cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
 							cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
-							cropImage.Tag = new Tuple<int, int>(i, j);
+                            cropImage.Tag = new Tuple<int, int>(i, j);
+                            _a[i, j] = check;
+                            check++;
 							//cropImage.MouseLeftButtonUp
 						}
 					}
@@ -102,16 +108,34 @@ namespace Puzzle
 				var dropDownImage = sender as Image;
 				Tuple<int, int> tag = dropDownImage.Tag as Tuple<int, int>;
 				var dropDownImageSource = dropDownImage.Source;
+                var oldDropDownImage = dropDownImage;
 
-				dropDownImage.Source = _selectedImage.Source;
+                dropDownImage.Source = _selectedImage.Source;
 				dropDownImage.Tag = _selectedImage.Tag;
+                var (i, j) = _selectedImage.Tag as Tuple<int, int>;
+                _images[i, j] = _selectedImage;
 
-				_selectedImage.Source = dropDownImageSource;
-				_selectedImage.Tag = tag;
+
+                _selectedImage.Source = dropDownImageSource;
+                _selectedImage.Tag = tag;
+                _images[tag.Item1, tag.Item2] = oldDropDownImage;
+
+                var win = checkWin();
 			}
 		}
 
-		private void CropImage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private bool checkWin()
+        {
+            for(int i = 0; i < 3; i++)
+            {
+                for(int j = 0; j < 3; j++)
+                {
+                    
+                }
+            }
+        }
+
+        private void CropImage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
 			_isDragging = true;
 			_selectedImage = sender as Image;
