@@ -31,9 +31,9 @@ namespace Puzzle
 		const int Rows = 3;
 		const int Columns = 3;
 		const int SideHeight = 100;
-        int[,] _a;
-        Image[,] _images;
-        private void NewImageMenuItem_Click(object sender, RoutedEventArgs e)
+        int[,] _a = new int[Rows, Columns];
+        Image[,] _pieces = new Image[Rows, Columns];
+		private void NewImageMenuItem_Click(object sender, RoutedEventArgs e)
 		{
 			var screen = new OpenFileDialog();
 			if (screen.ShowDialog() == true)
@@ -66,12 +66,11 @@ namespace Puzzle
 					side = (int) source.Height * 1 / Rows;
 				}
 				image.Stretch = Stretch.Fill;
-                int check = 1;
-				for (int i = 0; i < 3; i++)
+				for (int i = 0; i < Rows; i++)
 				{
-					for (int j = 0; j < 3; j++)
+					for (int j = 0; j < Columns; j++)
 					{
-						if (!((i == 2) && (j == 2)))
+						if (!((i == Rows - 1) && (j == Columns - 1)))
 						{
 							//Debug.WriteLine($"Len = {len}");
 							var rect = new Int32Rect(j * side, i * side, side, side);
@@ -91,54 +90,126 @@ namespace Puzzle
 							cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
 							cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
                             cropImage.Tag = new Tuple<int, int>(i, j);
-                            _a[i, j] = check;
-                            check++;
+                            _a[i, j] = i * Rows + j + 1;
+                            _pieces[i, j] = cropImage;
 							//cropImage.MouseLeftButtonUp
 						}
+                        else
+                        {
+                            
+                            var cropImage = new Image();
+                            cropImage.Stretch = Stretch.Fill;
+                            cropImage.Width = SideHeight;
+                            cropImage.Height = SideHeight;
+                            cropImage.Source = new BitmapImage(new Uri("Blank.png", UriKind.Relative));
+                            uiCanvas.Children.Add(cropImage);
+                            Canvas.SetLeft(cropImage, LeftPadding + j * (SideHeight + 2));
+                            Canvas.SetTop(cropImage, TopPadding + i * (SideHeight + 2));
+
+                            cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
+                            cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
+                            cropImage.Tag = new Tuple<int, int>(i, j);
+                            _a[i, j] = 0;
+                            _pieces[i, j] = cropImage;
+
+                        }
 					}
 				}
+                Shuffle();
 			}
 		}
 		bool _isDragging = false;
 		Image _selectedImage = null;
+        private void Shuffle()
+        {
+            int[] di = new int[] { 0, 0, -1, 1 };
+            int[] dj = new int[] { -1, 1, 0, 0 };
+            int emptyI = Rows - 1;
+            int emptyJ = Columns -1;
+            Random rng = new Random();
+            for(int i = 0; i < 1000; i++)
+            {
+                var move = rng.Next(4);
+                if(di[move] >= 0 && di[move] < Rows && dj[move] >= 0 && dj[move] < Columns)
+                {
+                    _selectedImage = _pieces[emptyI + di[move], emptyJ + dj[move]];
+                    swapToSource(_pieces[emptyI, emptyJ]);
+                    emptyI = di[move];
+                    emptyJ = dj[move];
+                }
+            }
+
+        }
 		private void CropImage_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
 		{
 			if (_isDragging)
 			{
 				var dropDownImage = sender as Image;
-				Tuple<int, int> tag = dropDownImage.Tag as Tuple<int, int>;
-				var dropDownImageSource = dropDownImage.Source;
-                var oldDropDownImage = dropDownImage;
-
-                dropDownImage.Source = _selectedImage.Source;
-				dropDownImage.Tag = _selectedImage.Tag;
-                var (i, j) = _selectedImage.Tag as Tuple<int, int>;
-                _images[i, j] = _selectedImage;
-
-
-                _selectedImage.Source = dropDownImageSource;
-                _selectedImage.Tag = tag;
-                _images[tag.Item1, tag.Item2] = oldDropDownImage;
-
-                var win = checkWin();
+                swapToSource(dropDownImage);
+                
 			}
+            _isDragging = !_isDragging;
 		}
+
+        private void swapToSource(Image dropDownImage)
+        {
+            var desTag = dropDownImage.Tag as Tuple<int, int>;
+            var i = desTag.Item1;
+            var j = desTag.Item2;
+            if (_a[i, j] == 0)
+            {
+                var sourceTag = _selectedImage.Tag as Tuple<int, int>;
+                if (nextTo(sourceTag, desTag))
+                {
+                    _a[i, j] = _a[sourceTag.Item1, sourceTag.Item2];
+                    _a[sourceTag.Item1, sourceTag.Item2] = 0;
+                    var dropDownImageSource = dropDownImage.Source;
+                    dropDownImage.Source = _selectedImage.Source;
+                    _selectedImage.Source = dropDownImageSource;
+                    if (checkWin() == true)
+                    {
+                        MessageBox.Show("You won!!!", "Congratulation");
+                    }
+                }
+            }
+        }
 
         private bool checkWin()
         {
-            for(int i = 0; i < 3; i++)
+            for (int i = 0; i < Rows; i++)
             {
-                for(int j = 0; j < 3; j++)
+                for (int j = 0; j < Columns; j++)
                 {
-                    
+                    if(i != Rows - 1 || j != Columns - 1)
+                        if (_a[i, j] != i * Rows + j + 1)
+                        {
+                            return false;
+                        }
                 }
             }
+            return true;
+        }
+
+
+        private bool nextTo(Tuple<int, int> sourceTag, Tuple<int, int> desTag)
+        {
+            int[] di = new int[] { 0, 0, -1, 1 };
+            int[] dj = new int[] { -1, 1, 0, 0 };
+            for(int i = 0; i < 4; i++)
+            {
+                if (desTag.Item1 == sourceTag.Item1 + di[i] && desTag.Item2 == sourceTag.Item2 + dj[i])
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void CropImage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
 			_isDragging = true;
 			_selectedImage = sender as Image;
+            
 		}
 	}
 }
