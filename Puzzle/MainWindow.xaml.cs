@@ -36,46 +36,59 @@ namespace Puzzle
 		const int SideHeight = 100;
         int[,] _a = new int[Rows, Columns];
         Image[,] _pieces = new Image[Rows, Columns];
+		BitmapImage _source = null;
 		private void NewImageMenuItem_Click(object sender, RoutedEventArgs e)
 		{
 			var screen = new OpenFileDialog();
 			if (screen.ShowDialog() == true)
 			{
-				var image = new Image();
-				var source = new BitmapImage(new Uri(screen.FileName, UriKind.Absolute));
-				image.Stretch = Stretch.Fill;
-				double ratio = source.Height / source.Width; //ti le cao / dai
-				if (ratio >= 1)
-				{
-					image.Height = 350;
-					image.Width = 350 * 1 / ratio;
-				}
-				else
-				{
-					image.Width = 350;
-					image.Height = 350 * ratio;
-				}
-				image.Source = source;
-				uiCanvas.Children.Add(image);
-				Canvas.SetLeft(image, LeftPadding + Columns * SideHeight + 80);
-				Canvas.SetTop(image, TopPadding);
+				loadImage(screen.FileName);
 
-				cropImage(source);
-				
-                Shuffle();
+				Button playButton = new Button();
+				playButton.Height = 90;
+				playButton.Width = 240;
+				playButton.FontSize = 48;
+				playButton.Content = "Play";
+				uiCanvas.Children.Add(playButton);
+				Canvas.SetLeft(playButton, 430);
+				Canvas.SetTop(playButton, 250);
+				playButton.Click += PlayButton_Click;
+
 			}
 		}
 
-		private void cropImage(BitmapImage source)
+		private void loadImage(string fileName)
 		{
-			int side = 0; //cạnh hình vuông nhỏ
-			if (source.Width < source.Height)
+			var image = new Image();
+			_source = new BitmapImage(new Uri(fileName, UriKind.Absolute));
+			image.Stretch = Stretch.Fill;
+			double ratio = _source.Height / _source.Width; //ti le cao / dai
+			if (ratio >= 1)
 			{
-				side = (int)source.Width * 1 / Columns;
+				image.Height = 350;
+				image.Width = 350 * 1 / ratio;
 			}
 			else
 			{
-				side = (int)source.Height * 1 / Rows;
+				image.Width = 350;
+				image.Height = 350 * ratio;
+			}
+			image.Source = _source;
+			uiCanvas.Children.Add(image);
+			Canvas.SetLeft(image, LeftPadding + Columns * SideHeight + 80);
+			Canvas.SetTop(image, TopPadding);
+
+		}
+			private void cropImage()
+		{
+			int side = 0; //cạnh hình vuông nhỏ
+			if (_source.Width < _source.Height)
+			{
+				side = (int)_source.Width * 1 / Columns;
+			}
+			else
+			{
+				side = (int)_source.Height * 1 / Rows;
 			}
 			for (int i = 0; i < Rows; i++)
 			{
@@ -83,9 +96,8 @@ namespace Puzzle
 				{
 					if (!((i == Rows - 1) && (j == Columns - 1)))
 					{
-						//Debug.WriteLine($"Len = {len}");
 						var rect = new Int32Rect(j * side, i * side, side, side);
-						var cropBitmap = new CroppedBitmap(source, rect);
+						var cropBitmap = new CroppedBitmap(_source, rect);
 
 						var cropImage = new Image();
 						cropImage.Stretch = Stretch.Fill;
@@ -103,28 +115,12 @@ namespace Puzzle
 						cropImage.Tag = new Tuple<int, int>(i, j);
 						_a[i, j] = i * Rows + j + 1;
 						_pieces[i, j] = cropImage;
-						//cropImage.MouseLeftButtonUp
 					}
-					//else
-					//{
-
-					//	var cropImage = new Image();
-					//	cropImage.Stretch = Stretch.Fill;
-					//	cropImage.Width = SideHeight;
-					//	cropImage.Height = SideHeight;
-					//	cropImage.Source = new BitmapImage(new Uri("Blank.png", UriKind.Relative));
-					//	uiCanvas.Children.Add(cropImage);
-					//	Canvas.SetLeft(cropImage, LeftPadding + j * (SideHeight + 2));
-					//	Canvas.SetTop(cropImage, TopPadding + i * (SideHeight + 2));
-
-					//	cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
-					//	cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
-					//	//cropImage.PreviewMouseMove += CropImage_PreviewMouseMove;
-					//	cropImage.Tag = new Tuple<int, int>(i, j);
-					//	_a[i, j] = 0;
-					//	_pieces[i, j] = cropImage;
-
-					//}
+					else
+					{
+						_pieces[i, j] = null;
+					}
+					
 				}
 			}
 		}
@@ -141,7 +137,6 @@ namespace Puzzle
 				var lastLeft = Canvas.GetLeft(_selectedImage);
 				var lastTop = Canvas.GetTop(_selectedImage);
 				var image = sender as Image;
-				this.Title = $"{position.X} : {position.Y}";
 				Canvas.SetLeft(_selectedImage, lastLeft + dx);
 				Canvas.SetTop(_selectedImage, lastTop + dy);
 
@@ -260,8 +255,15 @@ namespace Puzzle
             return false;
         }
 		DispatcherTimer timer = new DispatcherTimer();
-		private void MenuItem_Click(object sender, RoutedEventArgs e)
+		private void PlayButton_Click(object sender, RoutedEventArgs e)
 		{
+			var playButton = sender as Button;
+			uiCanvas.Children.Remove(playButton);
+
+			cropImage();
+
+			Shuffle();
+
 			timer.Interval = TimeSpan.FromSeconds(1);
 			timer.Tick += timer_Tick;
 			timer.Start();
@@ -276,7 +278,7 @@ namespace Puzzle
 				if (minutes == 0)
 				{
 					timer.Stop();
-					MessageBox.Show("You losted! Try again^^");
+					MessageBox.Show("You lose! Try again^^");
 					return;
 				}
 				else
