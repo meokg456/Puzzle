@@ -38,7 +38,8 @@ namespace Puzzle
         int[,] _a = new int[Rows, Columns];
         Image[,] _pieces = new Image[Rows, Columns];
 		BitmapImage _source = null;
-		private void NewImageMenuItem_Click(object sender, RoutedEventArgs e)
+        string dirImgRoot;
+        private void NewImageMenuItem_Click(object sender, RoutedEventArgs e)
 		{
 			var screen = new OpenFileDialog();
 			if (screen.ShowDialog() == true)
@@ -78,8 +79,9 @@ namespace Puzzle
 			uiCanvas.Children.Add(image);
 			Canvas.SetLeft(image, LeftPadding + Columns * SideHeight + 80);
 			Canvas.SetTop(image, TopPadding);
+            dirImgRoot = fileName;
 
-		}
+        }
 			private void cropImage()
 		{
 			int side = 0; //cạnh hình vuông nhỏ
@@ -307,7 +309,7 @@ namespace Puzzle
             {
                 for (int j = 0; j < Columns; j++)
                 {
-                    write.Write($"{_pieces[i, j].Source}-{_a[i, j]}");
+                    write.Write($"{_a[i, j]}");
                     if (j != (Columns - 1))
                     {
                         write.Write(" ");
@@ -330,26 +332,27 @@ namespace Puzzle
                 var reader = new StreamReader(filename);
                 var firstLine = reader.ReadLine();
 
-                var image = new Image();
-                var source = new BitmapImage(new Uri(firstLine, UriKind.Absolute));
-                image.Stretch = Stretch.Fill;
-                double ratio = source.Height / source.Width; //ti le cao / dai
-                if (ratio >= 1)
+                loadImage(firstLine);
+                cropImage();
+                for (int i = 0; i < Rows; i++)
                 {
-                    image.Height = 350;
-                    image.Width = 350 * 1 / ratio;
+                    var tokens = reader.ReadLine().Split(
+                        new string[] { " " }, StringSplitOptions.None);
+                    for (int j = 0; j < Columns; j++)
+                    {
+                        _a[i, j] = int.Parse(tokens[j]);
+                        Debug.WriteLine(_a[i, j]);
+                        if (_a[i, j] != 0)
+                        {
+                            var x = (_a[i, j] - 1) / Columns;
+                            var y = (_a[i, j] - 1) % Rows;
+
+                            Canvas.SetLeft(_pieces[x, y], LeftPadding + j * (SideHeight + 2));
+                            Canvas.SetTop(_pieces[x, y], TopPadding + i * (SideHeight + 2));
+                            _pieces[i, j] = _pieces[x, y];
+                        }
+                    }
                 }
-                else
-                {
-                    image.Width = 350;
-                    image.Height = 350 * ratio;
-                }
-                image.Source = source;
-                uiCanvas.Children.Add(image);
-                Canvas.SetLeft(image, LeftPadding + Columns * SideHeight + 80);
-                Canvas.SetTop(image, TopPadding);
-                //imageRoot = image;
-                dirImgRoot = screen.FileName;
             }
         }
     }
