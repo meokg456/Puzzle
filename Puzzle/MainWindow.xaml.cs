@@ -32,6 +32,7 @@ namespace Puzzle
 		const int Columns = 3;
 		const int SideHeight = 100;
         int[,] _a = new int[Rows, Columns];
+        Image[,] _pieces = new Image[Rows, Columns];
 		private void NewImageMenuItem_Click(object sender, RoutedEventArgs e)
 		{
 			var screen = new OpenFileDialog();
@@ -89,6 +90,7 @@ namespace Puzzle
 							cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
                             cropImage.Tag = new Tuple<int, int>(i, j);
                             _a[i, j] = i * Rows + j + 1;
+                            _pieces[i, j] = cropImage;
 							//cropImage.MouseLeftButtonUp
 						}
                         else
@@ -107,39 +109,69 @@ namespace Puzzle
                             cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
                             cropImage.Tag = new Tuple<int, int>(i, j);
                             _a[i, j] = 0;
+                            _pieces[i, j] = cropImage;
+
                         }
 					}
 				}
+                Shuffle();
 			}
 		}
 		bool _isDragging = false;
 		Image _selectedImage = null;
+        private void Shuffle()
+        {
+            int[] di = new int[] { 0, 0, -1, 1 };
+            int[] dj = new int[] { -1, 1, 0, 0 };
+            int emptyI = Rows - 1;
+            int emptyJ = Columns -1;
+            Random rng = new Random();
+            for(int i = 0; i < 1000; i++)
+            {
+                var move = rng.Next(4);
+                if(di[move] >= 0 && di[move] < Rows && dj[move] >= 0 && dj[move] < Columns)
+                {
+                    _selectedImage = _pieces[emptyI + di[move], emptyJ + dj[move]];
+                    swapToSource(_pieces[emptyI, emptyJ]);
+                    emptyI = di[move];
+                    emptyJ = dj[move];
+                }
+            }
+
+        }
 		private void CropImage_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
 		{
 			if (_isDragging)
 			{
 				var dropDownImage = sender as Image;
-                var desTag = dropDownImage.Tag as Tuple<int, int>;
-                var i = desTag.Item1;
-                var j = desTag.Item2;
-                if (_a[i, j] == 0)
+                swapToSource(dropDownImage);
+                
+			}
+            _isDragging = !_isDragging;
+		}
+
+        private void swapToSource(Image dropDownImage)
+        {
+            var desTag = dropDownImage.Tag as Tuple<int, int>;
+            var i = desTag.Item1;
+            var j = desTag.Item2;
+            if (_a[i, j] == 0)
+            {
+                var sourceTag = _selectedImage.Tag as Tuple<int, int>;
+                if (nextTo(sourceTag, desTag))
                 {
-                    var sourceTag = _selectedImage.Tag as Tuple<int, int>;
-                    if (nextTo(sourceTag, desTag))
+                    _a[i, j] = _a[sourceTag.Item1, sourceTag.Item2];
+                    _a[sourceTag.Item1, sourceTag.Item2] = 0;
+                    var dropDownImageSource = dropDownImage.Source;
+                    dropDownImage.Source = _selectedImage.Source;
+                    _selectedImage.Source = dropDownImageSource;
+                    if (checkWin() == true)
                     {
-                        _a[i, j] = _a[sourceTag.Item1, sourceTag.Item2];
-                        _a[sourceTag.Item1, sourceTag.Item2] = 0;
-                        var dropDownImageSource = dropDownImage.Source;
-                        dropDownImage.Source = _selectedImage.Source;
-                        _selectedImage.Source = dropDownImageSource;
-                        if(checkWin() == true)
-                        {
-                            MessageBox.Show("You won!!!", "Congratulation");
-                        }
+                        MessageBox.Show("You won!!!", "Congratulation");
                     }
                 }
-			}
-		}
+            }
+        }
 
         private bool checkWin()
         {
