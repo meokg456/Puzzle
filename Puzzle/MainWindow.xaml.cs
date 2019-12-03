@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Puzzle
 {
@@ -22,11 +23,13 @@ namespace Puzzle
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-		public MainWindow()
+        
+        public MainWindow()
 		{
 			InitializeComponent();
-		}
-		const int LeftPadding = 10;
+        }
+
+        const int LeftPadding = 10;
 		const int TopPadding = 10;
 		const int Rows = 3;
 		const int Columns = 3;
@@ -85,8 +88,6 @@ namespace Puzzle
 							Canvas.SetLeft(cropImage, LeftPadding + j * (SideHeight + 2));
 							Canvas.SetTop(cropImage, TopPadding + i * (SideHeight + 2));
 
-                            _images[i, j] = cropImage;
-
 							cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
 							cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
                             cropImage.Tag = new Tuple<int, int>(i, j);
@@ -115,31 +116,31 @@ namespace Puzzle
                         }
 					}
 				}
-                Shuffle();
+                //Shuffle();
 			}
 		}
 		bool _isDragging = false;
 		Image _selectedImage = null;
-        private void Shuffle()
-        {
-            int[] di = new int[] { 0, 0, -1, 1 };
-            int[] dj = new int[] { -1, 1, 0, 0 };
-            int emptyI = Rows - 1;
-            int emptyJ = Columns -1;
-            Random rng = new Random();
-            for(int i = 0; i < 1000; i++)
-            {
-                var move = rng.Next(4);
-                if(di[move] >= 0 && di[move] < Rows && dj[move] >= 0 && dj[move] < Columns)
-                {
-                    _selectedImage = _pieces[emptyI + di[move], emptyJ + dj[move]];
-                    swapToSource(_pieces[emptyI, emptyJ]);
-                    emptyI = di[move];
-                    emptyJ = dj[move];
-                }
-            }
+        //private void Shuffle()
+        //{
+        //    int[] di = new int[] { 0, 0, -1, 1 };
+        //    int[] dj = new int[] { -1, 1, 0, 0 };
+        //    int emptyI = Rows - 1;
+        //    int emptyJ = Columns -1;
+        //    Random rng = new Random();
+        //    for(int i = 0; i < 1000; i++)
+        //    {
+        //        var move = rng.Next(4);
+        //        if(di[move] >= 0 && di[move] < Rows && dj[move] >= 0 && dj[move] < Columns)
+        //        {
+        //            _selectedImage = _pieces[emptyI + di[move], emptyJ + dj[move]];
+        //            swapToSource(_pieces[emptyI, emptyJ]);
+        //            emptyI = di[move];
+        //            emptyJ = dj[move];
+        //        }
+        //    }
 
-        }
+        //}
 		private void CropImage_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
 		{
 			if (_isDragging)
@@ -168,6 +169,7 @@ namespace Puzzle
                     _selectedImage.Source = dropDownImageSource;
                     if (checkWin() == true)
                     {
+                        timer.Stop();
                         MessageBox.Show("You won!!!", "Congratulation");
                     }
                 }
@@ -211,5 +213,36 @@ namespace Puzzle
 			_selectedImage = sender as Image;
             
 		}
-	}
+        
+        DispatcherTimer timer = new DispatcherTimer();
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            timer.Interval = TimeSpan.FromSeconds(1);
+            timer.Tick += timer_Tick;
+            timer.Start();
+        }
+
+        int minutes = 0;
+        int seconds = 10;
+        void timer_Tick(object sender, EventArgs e)
+        {
+            if (seconds == -1)
+            {
+                if (minutes == 0)
+                {
+                    timer.Stop();
+                    MessageBox.Show("You losted! Try again^^");
+                    return;
+                }
+                else
+                {
+                    minutes--;
+                    seconds = 59;
+                }
+            }
+            var time = $"{minutes}:{seconds}";
+            lblTime.Content = time;
+            seconds--;
+        }
+    }
 }
