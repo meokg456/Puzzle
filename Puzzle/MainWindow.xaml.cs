@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Puzzle
 {
@@ -22,11 +23,13 @@ namespace Puzzle
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-		public MainWindow()
+        
+        public MainWindow()
 		{
 			InitializeComponent();
-		}
-		const int LeftPadding = 10;
+        }
+
+        const int LeftPadding = 10;
 		const int TopPadding = 10;
 		const int Rows = 3;
 		const int Columns = 3;
@@ -185,6 +188,7 @@ namespace Puzzle
 				{
 					if (checkWin() == true)
 					{
+						timer.Stop();
 						MessageBox.Show("You won!!!", "Congratulation");
 					}
 					Canvas.SetZIndex(_selectedImage, 1);
@@ -255,7 +259,36 @@ namespace Puzzle
             }
             return false;
         }
+		DispatcherTimer timer = new DispatcherTimer();
+		private void MenuItem_Click(object sender, RoutedEventArgs e)
+		{
+			timer.Interval = TimeSpan.FromSeconds(1);
+			timer.Tick += timer_Tick;
+			timer.Start();
+		}
 
-       
+		int minutes = 2;
+		int seconds = 59;
+		void timer_Tick(object sender, EventArgs e)
+		{
+			if (seconds == -1)
+			{
+				if (minutes == 0)
+				{
+					timer.Stop();
+					MessageBox.Show("You losted! Try again^^");
+					return;
+				}
+				else
+				{
+					minutes--;
+					seconds = 59;
+				}
+			}
+			var time = $"{minutes}:{seconds}";
+			lblTime.Content = time;
+			seconds--;
+		}
+
 	}
 }

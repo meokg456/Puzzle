@@ -6,11 +6,13 @@
         xmlns:local="clr-namespace:Puzzle"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-	<DockPanel LastChildFill="True">
-		<Menu DockPanel.Dock="Top" >
-			<MenuItem Header="New image" Click="NewImageMenuItem_Click" ></MenuItem>
-		</Menu>
-		<Canvas Name="uiCanvas">
-		</Canvas>
-	</DockPanel>
+    <DockPanel LastChildFill="True">
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="New image" Click="NewImageMenuItem_Click"></MenuItem>
+            <MenuItem Header="Play" Click="MenuItem_Click"></MenuItem>
+        </Menu>
+        <Canvas Name="uiCanvas">
+            <Label Name="lblTime" FontSize="48" Width="240" Height="92" HorizontalAlignment="Center" VerticalAlignment="Center" Canvas.Left="431" Canvas.Top="247" />
+        </Canvas>
+    </DockPanel>
 </Window>
