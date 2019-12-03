@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Puzzle"
         mc:Ignorable="d"
-        Title="Puzzle" Height="450" Width="800">
+        Title="Puzzle" Height="450" Width="800" Keyboard.KeyUp="Window_KeyUp">
     <DockPanel LastChildFill="True">
 		<Menu DockPanel.Dock="Top">
 			<MenuItem Header="New image" Click="NewImageMenuItem_Click"></MenuItem>
