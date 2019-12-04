@@ -140,7 +140,8 @@ namespace Puzzle
                         else
                         {
                             _pieces[i, j] = null;
-                        }
+							_a[i, j] = 0;
+						}
 
                     }
                 }
@@ -399,7 +400,6 @@ namespace Puzzle
                 }
 
                 cropImage();
-
                 Shuffle();
                 
                 minutes = 2;
@@ -484,8 +484,8 @@ namespace Puzzle
                             var x = (_a[i, j] - 1) / Columns;
                             var y = (_a[i, j] - 1) % Columns;
 
-                            Canvas.SetLeft(_pieces[x, y], LeftPadding + j * (SideHeight + 2));
-                            Canvas.SetTop(_pieces[x, y], TopPadding + i * (SideHeight + 2));
+						Canvas.SetLeft(_pieces[x, y], LeftPadding + j * (SideHeight + 2));
+						Canvas.SetTop(_pieces[x, y], TopPadding + i * (SideHeight + 2));
 
                             pieces[i, j] = _pieces[x, y];
                             _pieces[x, y].Tag = new Tuple<int, int>(i, j);
