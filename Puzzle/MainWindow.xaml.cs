@@ -415,5 +415,93 @@ namespace Puzzle
             }
 
         }
+
+        private void Left_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isPlaying == true)
+            {
+                for (int i = 0; i < Rows; i++)
+                {
+                    for (int j = 0; j < Columns; j++)
+                    {
+                        if (_pieces[i, j] == null)
+                        {
+                            if (j + 1 < Columns)
+                            {
+                                _selectedImage = _pieces[i, j + 1];
+                                swapToSelectedItem(new Tuple<int, int>(i, j));
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void Right_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isPlaying == true)
+            {
+                for (int i = 0; i < Rows; i++)
+                {
+                    for (int j = 0; j < Columns; j++)
+                    {
+                        if (_pieces[i, j] == null)
+                        {
+                            if (j - 1 >= 0)
+                            {
+                                _selectedImage = _pieces[i, j - 1];
+                                swapToSelectedItem(new Tuple<int, int>(i, j));
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void Up_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isPlaying == true)
+            {
+                for (int i = 0; i < Rows; i++)
+                {
+                    for (int j = 0; j < Columns; j++)
+                    {
+                        if (_pieces[i, j] == null)
+                        {
+                            if (i + 1 < Rows)
+                            {
+                                _selectedImage = _pieces[i + 1, j];
+                                swapToSelectedItem(new Tuple<int, int>(i, j));
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void Down_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isPlaying == true)
+            {
+                for (int i = 0; i < Rows; i++)
+                {
+                    for (int j = 0; j < Columns; j++)
+                    {
+                        if (_pieces[i, j] == null)
+                        {
+                            if (i - 1 >= 0)
+                            {
+                                _selectedImage = _pieces[i - 1, j];
+                                swapToSelectedItem(new Tuple<int, int>(i, j));
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
