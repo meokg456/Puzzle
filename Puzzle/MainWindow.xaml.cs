@@ -399,7 +399,7 @@ namespace Puzzle
                 }
 
                 cropImage();
-                Debug.WriteLine(_source);
+
                 Shuffle();
                 
                 minutes = 2;
