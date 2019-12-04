@@ -42,110 +42,139 @@ namespace Puzzle
         string dirImgRoot;
         private void NewImageMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var screen = new OpenFileDialog();
-            if (screen.ShowDialog() == true)
+            try
             {
-                loadImage(screen.FileName);
+                var screen = new OpenFileDialog();
+                if (screen.ShowDialog() == true)
+                {
+                    loadImage(screen.FileName);
 
-                Button playButton = new Button();
-                playButton.Height = 90;
-                playButton.Width = 240;
-                playButton.FontSize = 48;
-                playButton.Content = "Play";
-                uiCanvas.Children.Add(playButton);
-                Canvas.SetLeft(playButton, 430);
-                Canvas.SetTop(playButton, 250);
-                playButton.Click += PlayButton_Click;
+                    Button playButton = new Button();
+                    playButton.Height = 90;
+                    playButton.Width = 240;
+                    playButton.FontSize = 48;
+                    playButton.Content = "Play";
+                    uiCanvas.Children.Add(playButton);
+                    Canvas.SetLeft(playButton, 430);
+                    Canvas.SetTop(playButton, 250);
+                    playButton.Click += PlayButton_Click;
 
+                }
             }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
+            }
+            
         }
 
         private void loadImage(string fileName)
         {
-            var image = new Image();
-            _source = new BitmapImage(new Uri(fileName, UriKind.Absolute));
-            image.Stretch = Stretch.Fill;
-            double ratio = _source.Height / _source.Width; //ti le cao / dai
-            if (ratio >= 1)
+            try
             {
-                image.Height = 350;
-                image.Width = 350 * 1 / ratio;
+                var image = new Image();
+                _source = new BitmapImage(new Uri(fileName, UriKind.Absolute));
+                image.Stretch = Stretch.Fill;
+                double ratio = _source.Height / _source.Width; //ti le cao / dai
+                if (ratio >= 1)
+                {
+                    image.Height = 350;
+                    image.Width = 350 * 1 / ratio;
+                }
+                else
+                {
+                    image.Width = 350;
+                    image.Height = 350 * ratio;
+                }
+                image.Source = _source;
+                uiCanvas.Children.Add(image);
+                Canvas.SetLeft(image, LeftPadding + Columns * SideHeight + 80);
+                Canvas.SetTop(image, TopPadding);
+                dirImgRoot = fileName;
             }
-            else
+            catch(Exception ex)
             {
-                image.Width = 350;
-                image.Height = 350 * ratio;
+                MessageBox.Show(ex.Message.ToString());
             }
-            image.Source = _source;
-            uiCanvas.Children.Add(image);
-            Canvas.SetLeft(image, LeftPadding + Columns * SideHeight + 80);
-            Canvas.SetTop(image, TopPadding);
-            dirImgRoot = fileName;
 
         }
         private void cropImage()
         {
-            int side = 0; //cạnh hình vuông nhỏ
-            if (_source.Width < _source.Height)
+            try
             {
-                side = (int)_source.Width * 1 / Columns;
-            }
-            else
-            {
-                side = (int)_source.Height * 1 / Rows;
-            }
-            for (int i = 0; i < Rows; i++)
-            {
-                for (int j = 0; j < Columns; j++)
+                int side = 0; //cạnh hình vuông nhỏ
+                if (_source.Width < _source.Height)
                 {
-                    if (!((i == Rows - 1) && (j == Columns - 1)))
-                    {
-                        var rect = new Int32Rect(j * side, i * side, side, side);
-                        var cropBitmap = new CroppedBitmap(_source, rect);
-
-                        var cropImage = new Image();
-                        cropImage.Stretch = Stretch.Fill;
-                        cropImage.Width = SideHeight;
-                        cropImage.Height = SideHeight;
-                        cropImage.Source = cropBitmap;
-                        uiCanvas.Children.Add(cropImage);
-                        Canvas.SetLeft(cropImage, LeftPadding + j * (SideHeight + 2));
-                        Canvas.SetTop(cropImage, TopPadding + i * (SideHeight + 2));
-
-
-                        cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
-                        cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
-                        cropImage.PreviewMouseMove += CropImage_PreviewMouseMove;
-                        cropImage.Tag = new Tuple<int, int>(i, j);
-                        _a[i, j] = i * Rows + j + 1;
-                        _pieces[i, j] = cropImage;
-                    }
-                    else
-                    {
-                        _pieces[i, j] = null;
-                    }
-
+                    side = (int)_source.Width * 1 / Columns;
                 }
+                else
+                {
+                    side = (int)_source.Height * 1 / Rows;
+                }
+                for (int i = 0; i < Rows; i++)
+                {
+                    for (int j = 0; j < Columns; j++)
+                    {
+                        if (!((i == Rows - 1) && (j == Columns - 1)))
+                        {
+                            var rect = new Int32Rect(j * side, i * side, side, side);
+                            var cropBitmap = new CroppedBitmap(_source, rect);
+
+                            var cropImage = new Image();
+                            cropImage.Stretch = Stretch.Fill;
+                            cropImage.Width = SideHeight;
+                            cropImage.Height = SideHeight;
+                            cropImage.Source = cropBitmap;
+                            uiCanvas.Children.Add(cropImage);
+                            Canvas.SetLeft(cropImage, LeftPadding + j * (SideHeight + 2));
+                            Canvas.SetTop(cropImage, TopPadding + i * (SideHeight + 2));
+
+
+                            cropImage.MouseLeftButtonDown += CropImage_MouseLeftButtonDown;
+                            cropImage.PreviewMouseLeftButtonUp += CropImage_PreviewMouseLeftButtonUp;
+                            cropImage.PreviewMouseMove += CropImage_PreviewMouseMove;
+                            cropImage.Tag = new Tuple<int, int>(i, j);
+                            _a[i, j] = i * Rows + j + 1;
+                            _pieces[i, j] = cropImage;
+                        }
+                        else
+                        {
+                            _pieces[i, j] = null;
+                        }
+
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
             }
         }
 
         private void CropImage_PreviewMouseMove(object sender, MouseEventArgs e)
         {
-            if (_isDragging)
+            try
             {
-                var position = e.GetPosition(this);
+                if (_isDragging)
+                {
+                    var position = e.GetPosition(this);
 
-                var dx = position.X - _lastPosition.X;
-                var dy = position.Y - _lastPosition.Y;
+                    var dx = position.X - _lastPosition.X;
+                    var dy = position.Y - _lastPosition.Y;
 
-                var lastLeft = Canvas.GetLeft(_selectedImage);
-                var lastTop = Canvas.GetTop(_selectedImage);
-                var image = sender as Image;
-                Canvas.SetLeft(_selectedImage, lastLeft + dx);
-                Canvas.SetTop(_selectedImage, lastTop + dy);
+                    var lastLeft = Canvas.GetLeft(_selectedImage);
+                    var lastTop = Canvas.GetTop(_selectedImage);
+                    var image = sender as Image;
+                    Canvas.SetLeft(_selectedImage, lastLeft + dx);
+                    Canvas.SetTop(_selectedImage, lastTop + dy);
 
 
-                _lastPosition = position;
+                    _lastPosition = position;
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
             }
         }
 
@@ -154,58 +183,79 @@ namespace Puzzle
         Point _lastPosition;
         private void Shuffle()
         {
-            int[] di = new int[] { 0, 0, -1, 1 };
-            int[] dj = new int[] { -1, 1, 0, 0 };
-            int emptyI = Rows - 1;
-            int emptyJ = Columns - 1;
-            Random rng = new Random();
-            for (int i = 0; i < 1000; i++)
+            try
             {
-                var move = rng.Next(4);
-                if (emptyI + di[move] >= 0 && emptyI + di[move] < Rows && emptyJ + dj[move] >= 0 && emptyJ + dj[move] < Columns)
+                int[] di = new int[] { 0, 0, -1, 1 };
+                int[] dj = new int[] { -1, 1, 0, 0 };
+                int emptyI = Rows - 1;
+                int emptyJ = Columns - 1;
+                Random rng = new Random();
+                for (int i = 0; i < 1000; i++)
                 {
-                    _selectedImage = _pieces[emptyI + di[move], emptyJ + dj[move]];
-                    swapToSelectedItem(new Tuple<int, int>(emptyI, emptyJ));
-                    _pieces[emptyI + di[move], emptyJ + dj[move]] = null;
-                    _pieces[emptyI, emptyJ] = _selectedImage;
-                    emptyI = emptyI + di[move];
-                    emptyJ = emptyJ + dj[move];
+                    var move = rng.Next(4);
+                    if (emptyI + di[move] >= 0 && emptyI + di[move] < Rows && emptyJ + dj[move] >= 0 && emptyJ + dj[move] < Columns)
+                    {
+                        _selectedImage = _pieces[emptyI + di[move], emptyJ + dj[move]];
+                        swapToSelectedItem(new Tuple<int, int>(emptyI, emptyJ));
+                        _pieces[emptyI + di[move], emptyJ + dj[move]] = null;
+                        _pieces[emptyI, emptyJ] = _selectedImage;
+                        emptyI = emptyI + di[move];
+                        emptyJ = emptyJ + dj[move];
 
+                    }
                 }
             }
-
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
+            }
         }
         private void CropImage_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (_isDragging)
+            try
             {
-                var dropDownImage = sender as Image;
-                var position = e.GetPosition(this);
-                var j = (int)(position.X - LeftPadding) / (SideHeight + 2);
-                var i = (int)(position.Y - TopPadding) / (SideHeight + 2);
-                if (swapToSelectedItem(new Tuple<int, int>(i, j)))
+                if (_isDragging)
                 {
-                    if (checkWin() == true)
+                    var dropDownImage = sender as Image;
+                    var position = e.GetPosition(this);
+                    var j = (int)(position.X - LeftPadding) / (SideHeight + 2);
+                    var i = (int)(position.Y - TopPadding) / (SideHeight + 2);
+                    if (swapToSelectedItem(new Tuple<int, int>(i, j)))
                     {
-                        timer.Stop();
-                        MessageBox.Show("You won!!!", "Congratulation");
+                        if (checkWin() == true)
+                        {
+                            timer.Stop();
+                            MessageBox.Show("You won!!!", "Congratulation");
+                        }
+                        Canvas.SetZIndex(_selectedImage, 1);
                     }
-                    Canvas.SetZIndex(_selectedImage, 1);
-                }
-                _isDragging = false;
+                    _isDragging = false;
 
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
             }
 
         }
         private void CropImage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            _isDragging = true;
-            _selectedImage = sender as Image;
-            _lastPosition = e.GetPosition(this);
-            Canvas.SetZIndex(_selectedImage, 2);
+            try
+            {
+                _isDragging = true;
+                _selectedImage = sender as Image;
+                _lastPosition = e.GetPosition(this);
+                Canvas.SetZIndex(_selectedImage, 2);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
+            }
         }
         private bool swapToSelectedItem(Tuple<int, int> desTag)
         {
+
             var i = desTag.Item1;
             var j = desTag.Item2;
             var sourceTag = _selectedImage.Tag as Tuple<int, int>;
@@ -264,77 +314,113 @@ namespace Puzzle
         DispatcherTimer timer = new DispatcherTimer();
         private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                _isPlaying = true;
+                var playButton = sender as Button;
+                uiCanvas.Children.Remove(playButton);
 
-            _isPlaying = true;
-            var playButton = sender as Button;
-            uiCanvas.Children.Remove(playButton);
+                cropImage();
 
-            cropImage();
+                Shuffle();
 
-            Shuffle();
-
-            timer.Interval = TimeSpan.FromSeconds(1);
-            timer.Tick += timer_Tick;
-            timer.Start();
+                timer.Interval = TimeSpan.FromSeconds(1);
+                timer.Tick += timer_Tick;
+                timer.Start();
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
+            }
         }
 
         int minutes = 2;
         int seconds = 59;
         void timer_Tick(object sender, EventArgs e)
         {
-            if (seconds == -1)
+            try
             {
-                if (minutes == 0)
+                if (seconds == -1)
                 {
-                    timer.Stop();
-                    MessageBox.Show("You lose! Try again^^");
-                    _isPlaying = false;
-                    return;
+                    if (minutes == 0)
+                    {
+                        timer.Stop();
+                        MessageBox.Show("You lose! Try again^^");
+                        _isPlaying = false;
+                        return;
+                    }
+                    else
+                    {
+                        minutes--;
+                        seconds = 59;
+                    }
                 }
-                else
-                {
-                    minutes--;
-                    seconds = 59;
-                }
+                var time = $"{minutes.ToString("00")}:{seconds.ToString("00")}";
+                lblTime.Content = time;
+                seconds--;
             }
-            var time = $"{minutes}:{seconds}";
-            lblTime.Content = time;
-            seconds--;
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
+            }
         }
 
         private void SaveMenuItem_Click(object sender, RoutedEventArgs e)
         {
-
-            var write = new StreamWriter(FileName);
-            //Dòng đầu tiên là source của hình gốc
-            //write.WriteLine($"{imageRoot.Source} {imageRoot.Width} {imageRoot.Height}");
-            write.WriteLine(dirImgRoot);
-
-            //Theo sau la ma tran bieu dien game
-            for (int i = 0; i < Rows; i++)
+            try
             {
-                for (int j = 0; j < Columns; j++)
+                if (_isPlaying)
                 {
-                    write.Write($"{_a[i, j]}");
-                    if (j != (Columns - 1))
-                    {
-                        write.Write(" ");
-                    }
-                }
-                write.WriteLine("");
-            }
+                    var write = new StreamWriter(FileName);
+                    //Dòng đầu tiên là source của hình gốc
+                    write.WriteLine(dirImgRoot);
+                    //Dòng thứ hai là thời gian còn lại
+                    write.WriteLine($"{minutes}:{seconds}");
 
-            write.Close();
-            MessageBox.Show("Game is saved!");
+                    //Theo sau la ma tran bieu dien game
+                    for (int i = 0; i < Rows; i++)
+                    {
+                        for (int j = 0; j < Columns; j++)
+                        {
+                            write.Write($"{_a[i, j]}");
+                            if (j != (Columns - 1))
+                            {
+                                write.Write(" ");
+                            }
+                        }
+                        write.WriteLine("");
+                    }
+
+                    write.Close();
+                    MessageBox.Show("Game is saved!");
+                }
+                else
+                    MessageBox.Show("Game can't save! Please Play^^");
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
+            }
         }
 
         private void LoadMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
                 var reader = new StreamReader(FileName);
                 var firstLine = reader.ReadLine();
-				var pieces = new Image[Rows, Columns];
+                var pieces = new Image[Rows, Columns];
                 loadImage(firstLine);
                 cropImage();
+
+                var secondLine = reader.ReadLine().Split(
+                        new string[] { ":" }, StringSplitOptions.None);
+                minutes = int.Parse(secondLine[0]);
+                seconds = int.Parse(secondLine[1]);
+                timer.Interval = TimeSpan.FromSeconds(1);
+                timer.Tick += timer_Tick;
+                timer.Start();
+
                 for (int i = 0; i < Rows; i++)
                 {
                     var tokens = reader.ReadLine().Split(
@@ -350,44 +436,91 @@ namespace Puzzle
                             Canvas.SetLeft(_pieces[x, y], LeftPadding + j * (SideHeight + 2));
                             Canvas.SetTop(_pieces[x, y], TopPadding + i * (SideHeight + 2));
 
-							pieces[i, j] = _pieces[x, y];
-							_pieces[x, y].Tag = new Tuple<int, int>(i, j);
+                            pieces[i, j] = _pieces[x, y];
+                            _pieces[x, y].Tag = new Tuple<int, int>(i, j);
                         }
                     }
                 }
-				_pieces = pieces;
-				_isPlaying = true;
+                _pieces = pieces;
+                _isPlaying = true;
+                reader.Close();
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
+            }
         }
 
         private void Window_KeyUp(object sender, KeyEventArgs e)
         {
-            if (_isPlaying == true)
+            try
             {
-                for (int i = 0; i < Rows; i++)
+                if (_isPlaying == true)
                 {
-                    for (int j = 0; j < Columns; j++)
+                    for (int i = 0; i < Rows; i++)
                     {
-                        if (_pieces[i, j] == null)
+                        for (int j = 0; j < Columns; j++)
                         {
-                            if (e.Key == Key.Up)
+                            if (_pieces[i, j] == null)
                             {
-                                if (i + 1 < Rows)
+                                if (e.Key == Key.Up)
                                 {
-                                    _selectedImage = _pieces[i + 1, j];
-                                    swapToSelectedItem(new Tuple<int, int>(i, j));
-                                    return;
+                                    if (i + 1 < Rows)
+                                    {
+                                        _selectedImage = _pieces[i + 1, j];
+                                        swapToSelectedItem(new Tuple<int, int>(i, j));
+                                        return;
+                                    }
+                                }
+                                if (e.Key == Key.Down)
+                                {
+                                    if (i - 1 >= 0)
+                                    {
+                                        _selectedImage = _pieces[i - 1, j];
+                                        swapToSelectedItem(new Tuple<int, int>(i, j));
+                                        return;
+                                    }
+                                }
+                                if (e.Key == Key.Left)
+                                {
+                                    if (j + 1 < Columns)
+                                    {
+                                        _selectedImage = _pieces[i, j + 1];
+                                        swapToSelectedItem(new Tuple<int, int>(i, j));
+                                        return;
+                                    }
+                                }
+                                if (e.Key == Key.Right)
+                                {
+                                    if (j - 1 >= 0)
+                                    {
+                                        _selectedImage = _pieces[i, j - 1];
+                                        swapToSelectedItem(new Tuple<int, int>(i, j));
+                                        return;
+                                    }
                                 }
                             }
-                            if (e.Key == Key.Down)
-                            {
-                                if (i - 1 >= 0)
-                                {
-                                    _selectedImage = _pieces[i - 1, j];
-                                    swapToSelectedItem(new Tuple<int, int>(i, j));
-                                    return;
-                                }
-                            }
-                            if (e.Key == Key.Left)
+                        }
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
+            }
+        }
+
+        private void Left_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_isPlaying == true)
+                {
+                    for (int i = 0; i < Rows; i++)
+                    {
+                        for (int j = 0; j < Columns; j++)
+                        {
+                            if (_pieces[i, j] == null)
                             {
                                 if (j + 1 < Columns)
                                 {
@@ -396,7 +529,27 @@ namespace Puzzle
                                     return;
                                 }
                             }
-                            if (e.Key == Key.Right)
+                        }
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
+            }
+        }
+
+        private void Right_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_isPlaying == true)
+                {
+                    for (int i = 0; i < Rows; i++)
+                    {
+                        for (int j = 0; j < Columns; j++)
+                        {
+                            if (_pieces[i, j] == null)
                             {
                                 if (j - 1 >= 0)
                                 {
@@ -409,94 +562,67 @@ namespace Puzzle
                     }
                 }
             }
-
-        }
-
-        private void Left_Click(object sender, RoutedEventArgs e)
-        {
-            if (_isPlaying == true)
+            catch (Exception ex)
             {
-                for (int i = 0; i < Rows; i++)
-                {
-                    for (int j = 0; j < Columns; j++)
-                    {
-                        if (_pieces[i, j] == null)
-                        {
-                            if (j + 1 < Columns)
-                            {
-                                _selectedImage = _pieces[i, j + 1];
-                                swapToSelectedItem(new Tuple<int, int>(i, j));
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private void Right_Click(object sender, RoutedEventArgs e)
-        {
-            if (_isPlaying == true)
-            {
-                for (int i = 0; i < Rows; i++)
-                {
-                    for (int j = 0; j < Columns; j++)
-                    {
-                        if (_pieces[i, j] == null)
-                        {
-                            if (j - 1 >= 0)
-                            {
-                                _selectedImage = _pieces[i, j - 1];
-                                swapToSelectedItem(new Tuple<int, int>(i, j));
-                                return;
-                            }
-                        }
-                    }
-                }
+                MessageBox.Show(ex.Message.ToString());
             }
         }
 
         private void Up_Click(object sender, RoutedEventArgs e)
         {
-            if (_isPlaying == true)
+            try
             {
-                for (int i = 0; i < Rows; i++)
+                if (_isPlaying == true)
                 {
-                    for (int j = 0; j < Columns; j++)
+                    for (int i = 0; i < Rows; i++)
                     {
-                        if (_pieces[i, j] == null)
+                        for (int j = 0; j < Columns; j++)
                         {
-                            if (i + 1 < Rows)
+                            if (_pieces[i, j] == null)
                             {
-                                _selectedImage = _pieces[i + 1, j];
-                                swapToSelectedItem(new Tuple<int, int>(i, j));
-                                return;
+                                if (i + 1 < Rows)
+                                {
+                                    _selectedImage = _pieces[i + 1, j];
+                                    swapToSelectedItem(new Tuple<int, int>(i, j));
+                                    return;
+                                }
                             }
                         }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
+            }
         }
 
         private void Down_Click(object sender, RoutedEventArgs e)
         {
-            if (_isPlaying == true)
+            try
             {
-                for (int i = 0; i < Rows; i++)
+                if (_isPlaying == true)
                 {
-                    for (int j = 0; j < Columns; j++)
+                    for (int i = 0; i < Rows; i++)
                     {
-                        if (_pieces[i, j] == null)
+                        for (int j = 0; j < Columns; j++)
                         {
-                            if (i - 1 >= 0)
+                            if (_pieces[i, j] == null)
                             {
-                                _selectedImage = _pieces[i - 1, j];
-                                swapToSelectedItem(new Tuple<int, int>(i, j));
-                                return;
+                                if (i - 1 >= 0)
+                                {
+                                    _selectedImage = _pieces[i - 1, j];
+                                    swapToSelectedItem(new Tuple<int, int>(i, j));
+                                    return;
+                                }
                             }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
             }
         }
     }
