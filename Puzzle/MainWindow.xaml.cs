@@ -35,7 +35,8 @@ namespace Puzzle
         const int Rows = 3;
         const int Columns = 3;
         const int SideHeight = 100;
-        int[,] _a = new int[Rows, Columns];
+		const string FileName = "Save.txt";
+		int[,] _a = new int[Rows, Columns];
         Image[,] _pieces = new Image[Rows, Columns];
         BitmapImage _source = null;
         string dirImgRoot;
@@ -303,9 +304,8 @@ namespace Puzzle
 
         private void SaveMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            const string filename = "Save.txt";
 
-            var write = new StreamWriter(filename);
+            var write = new StreamWriter(FileName);
             //Dòng đầu tiên là source của hình gốc
             //write.WriteLine($"{imageRoot.Source} {imageRoot.Width} {imageRoot.Height}");
             write.WriteLine(dirImgRoot);
@@ -330,14 +330,9 @@ namespace Puzzle
 
         private void LoadMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var screen = new OpenFileDialog();
-            if (screen.ShowDialog() == true)
-            {
-                var filename = screen.FileName;
-
-                var reader = new StreamReader(filename);
+                var reader = new StreamReader(FileName);
                 var firstLine = reader.ReadLine();
-
+				var pieces = new Image[Rows, Columns];
                 loadImage(firstLine);
                 cropImage();
                 for (int i = 0; i < Rows; i++)
@@ -347,20 +342,21 @@ namespace Puzzle
                     for (int j = 0; j < Columns; j++)
                     {
                         _a[i, j] = int.Parse(tokens[j]);
-                        Debug.WriteLine(_a[i, j]);
                         if (_a[i, j] != 0)
                         {
                             var x = (_a[i, j] - 1) / Columns;
-                            var y = (_a[i, j] - 1) % Rows;
+                            var y = (_a[i, j] - 1) % Columns;
 
                             Canvas.SetLeft(_pieces[x, y], LeftPadding + j * (SideHeight + 2));
                             Canvas.SetTop(_pieces[x, y], TopPadding + i * (SideHeight + 2));
-                            _pieces[i, j] = _pieces[x, y];
 
+							pieces[i, j] = _pieces[x, y];
+							_pieces[x, y].Tag = new Tuple<int, int>(i, j);
                         }
                     }
                 }
-            }
+				_pieces = pieces;
+				_isPlaying = true;
         }
 
         private void Window_KeyUp(object sender, KeyEventArgs e)
