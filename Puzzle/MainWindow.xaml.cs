@@ -335,8 +335,8 @@ namespace Puzzle
             }
         }
 
-        int minutes = 0;
-        int seconds = 10;
+        int minutes = 2;
+        int seconds = 59;
         void timer_Tick(object sender, EventArgs e)
         {
             try
@@ -348,7 +348,6 @@ namespace Puzzle
                         timer.Stop();
                         MessageBox.Show("You lose! Try again^^");
                         _isPlaying = false;
-                        Restart();
                         return;
                     }
                     else
@@ -366,54 +365,7 @@ namespace Puzzle
                 MessageBox.Show(ex.Message.ToString());
             }
         }
-
-        private void Restart()
-        {
-            Button restartButton = new Button();
-            restartButton.Height = 90;
-            restartButton.Width = 240;
-            restartButton.FontSize = 48;
-            restartButton.Content = "Restart";
-            uiCanvas.Children.Add(restartButton);
-            Canvas.SetLeft(restartButton, 430);
-            Canvas.SetTop(restartButton, 250);
-            restartButton.Click += RestartButton_Click;
-        }
-
-        private void RestartButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                _isPlaying = true;
-                var restartButton = sender as Button;
-                uiCanvas.Children.Remove(restartButton);
-
-                for (int i = 0; i < Rows; i++)
-                {
-                    for(int j = 0; j < Columns; j++)
-                    {
-                        if (_pieces[i, j] != null)
-                        {
-                            uiCanvas.Children.Remove(_pieces[i, j]);
-                        }
-                    }
-                }
-
-                cropImage();
-                Shuffle();
-                
-                minutes = 2;
-                seconds = 59;
-                timer.Interval = TimeSpan.FromSeconds(1);
-                timer.Tick += timer_Tick;
-                timer.Start();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message.ToString());
-            }
-        }
-
+        
         private void SaveMenuItem_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -670,6 +622,39 @@ namespace Puzzle
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
+            }
+        }
+
+        private void RestartMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                _isPlaying = true;
+                var restartButton = sender as Button;
+                uiCanvas.Children.Remove(restartButton);
+
+                for (int i = 0; i < Rows; i++)
+                {
+                    for (int j = 0; j < Columns; j++)
+                    {
+                        if (_pieces[i, j] != null)
+                        {
+                            uiCanvas.Children.Remove(_pieces[i, j]);
+                        }
+                    }
+                }
+
+                cropImage();
+                Shuffle();
+
+                minutes = 2;
+                seconds = 59;
+                timer = new DispatcherTimer();
+                timer.Start();
             }
             catch (Exception ex)
             {

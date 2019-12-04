@@ -11,6 +11,7 @@
             <MenuItem Header="New image" Click="NewImageMenuItem_Click"></MenuItem>
             <MenuItem Header="Save" Click="SaveMenuItem_Click"></MenuItem>
             <MenuItem Header="Load" Click="LoadMenuItem_Click"></MenuItem>
+            <MenuItem Header="Restart" Click="RestartMenuItem_Click"></MenuItem>
         </Menu>
         <Canvas Name="uiCanvas">
             <Label Name="lblTime" FontSize="48" Width="225" Height="73" HorizontalContentAlignment="Center" Canvas.Left="430" Canvas.Top="227" RenderTransformOrigin="0.508,0.511" />
