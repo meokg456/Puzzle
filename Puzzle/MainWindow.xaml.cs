@@ -140,7 +140,8 @@ namespace Puzzle
                         else
                         {
                             _pieces[i, j] = null;
-                        }
+							_a[i, j] = 0;
+						}
 
                     }
                 }
@@ -399,7 +400,6 @@ namespace Puzzle
                 }
 
                 cropImage();
-                Debug.WriteLine(_source);
                 Shuffle();
                 
                 minutes = 2;
