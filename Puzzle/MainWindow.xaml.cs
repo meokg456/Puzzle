@@ -39,7 +39,6 @@ namespace Puzzle
 		int[,] _a = new int[Rows, Columns];
         Image[,] _pieces = new Image[Rows, Columns];
         BitmapImage _source = null;
-        string dirImgRoot;
         private void NewImageMenuItem_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -47,8 +46,8 @@ namespace Puzzle
                 var screen = new OpenFileDialog();
                 if (screen.ShowDialog() == true)
                 {
-                    loadImage(screen.FileName);
-
+					gameBoardCanvas.Children.Clear();
+					loadImage(screen.FileName);
                     Button playButton = new Button();
                     playButton.Height = 90;
                     playButton.Width = 240;
@@ -56,7 +55,7 @@ namespace Puzzle
                     playButton.Content = "Play";
                     uiCanvas.Children.Add(playButton);
                     Canvas.SetLeft(playButton, 430);
-                    Canvas.SetTop(playButton, 250);
+                    Canvas.SetTop(playButton, 50);
                     playButton.Click += PlayButton_Click;
 
                 }
@@ -87,10 +86,9 @@ namespace Puzzle
                     image.Height = 350 * ratio;
                 }
                 image.Source = _source;
-                uiCanvas.Children.Add(image);
+                gameBoardCanvas.Children.Add(image);
                 Canvas.SetLeft(image, LeftPadding + Columns * SideHeight + 80);
                 Canvas.SetTop(image, TopPadding);
-                dirImgRoot = fileName;
             }
             catch(Exception ex)
             {
@@ -125,7 +123,7 @@ namespace Puzzle
                             cropImage.Width = SideHeight;
                             cropImage.Height = SideHeight;
                             cropImage.Source = cropBitmap;
-                            uiCanvas.Children.Add(cropImage);
+                            gameBoardCanvas.Children.Add(cropImage);
                             Canvas.SetLeft(cropImage, LeftPadding + j * (SideHeight + 2));
                             Canvas.SetTop(cropImage, TopPadding + i * (SideHeight + 2));
 
@@ -227,6 +225,7 @@ namespace Puzzle
                         {
                             timer.Stop();
                             MessageBox.Show("You won!!!", "Congratulation");
+							_isPlaying = false;
                         }
                         Canvas.SetZIndex(_selectedImage, 1);
                     }
@@ -325,8 +324,9 @@ namespace Puzzle
 
                 Shuffle();
 
-                timer.Interval = TimeSpan.FromSeconds(1);
-                timer.Tick += timer_Tick;
+				lblTime.Content = "03:00";
+				minutes = 2;
+				seconds = 59;
                 timer.Start();
             }
             catch(Exception ex)
@@ -341,9 +341,9 @@ namespace Puzzle
         {
             try
             {
-                if (seconds == -1)
+                if (seconds == 0)
                 {
-                    if (minutes == 0)
+                    if (minutes == -1)
                     {
                         timer.Stop();
                         MessageBox.Show("You lose! Try again^^");
@@ -357,9 +357,9 @@ namespace Puzzle
                     }
                 }
                 var time = $"{minutes.ToString("00")}:{seconds.ToString("00")}";
-                lblTime.Content = time;
-                seconds--;
-            }
+				lblTime.Content = time;
+				seconds--;
+			}
             catch(Exception ex)
             {
                 MessageBox.Show(ex.Message.ToString());
@@ -374,7 +374,7 @@ namespace Puzzle
                 {
                     var write = new StreamWriter(FileName);
                     //Dòng đầu tiên là source của hình gốc
-                    write.WriteLine(dirImgRoot);
+                    write.WriteLine(_source.UriSource.AbsoluteUri);
                     //Dòng thứ hai là thời gian còn lại
                     write.WriteLine($"{minutes}:{seconds}");
 
@@ -413,16 +413,17 @@ namespace Puzzle
                 var reader = new StreamReader(FileName);
                 var firstLine = reader.ReadLine();
                 var pieces = new Image[Rows, Columns];
-                loadImage(firstLine);
+				timer.Stop();
+				gameBoardCanvas.Children.Clear();
+				loadImage(firstLine);
                 cropImage();
-
                 var secondLine = reader.ReadLine().Split(
                         new string[] { ":" }, StringSplitOptions.None);
                 minutes = int.Parse(secondLine[0]);
                 seconds = int.Parse(secondLine[1]);
-                timer.Interval = TimeSpan.FromSeconds(1);
-                timer.Tick += timer_Tick;
-                timer.Start();
+				var time = $"{minutes.ToString("00")}:{(seconds + 1).ToString("00")}";
+				lblTime.Content = time;
+				timer.Start();
 
                 for (int i = 0; i < Rows; i++)
                 {
@@ -431,20 +432,24 @@ namespace Puzzle
                     for (int j = 0; j < Columns; j++)
                     {
                         _a[i, j] = int.Parse(tokens[j]);
-                        if (_a[i, j] != 0)
-                        {
-                            var x = (_a[i, j] - 1) / Columns;
-                            var y = (_a[i, j] - 1) % Columns;
+						if (_a[i, j] != 0)
+						{
+							var x = (_a[i, j] - 1) / Columns;
+							var y = (_a[i, j] - 1) % Columns;
 
-						Canvas.SetLeft(_pieces[x, y], LeftPadding + j * (SideHeight + 2));
-						Canvas.SetTop(_pieces[x, y], TopPadding + i * (SideHeight + 2));
+							Canvas.SetLeft(_pieces[x, y], LeftPadding + j * (SideHeight + 2));
+							Canvas.SetTop(_pieces[x, y], TopPadding + i * (SideHeight + 2));
 
-                            pieces[i, j] = _pieces[x, y];
-                            _pieces[x, y].Tag = new Tuple<int, int>(i, j);
-                        }
+							pieces[i, j] = _pieces[x, y];
+							_pieces[x, y].Tag = new Tuple<int, int>(i, j);
+						}
+						else
+						{
+							pieces[i, j] = null;
+						}
                     }
                 }
-                _pieces = pieces;
+				_pieces = pieces;
                 _isPlaying = true;
                 reader.Close();
             }
@@ -472,7 +477,6 @@ namespace Puzzle
                                     {
                                         _selectedImage = _pieces[i + 1, j];
                                         swapToSelectedItem(new Tuple<int, int>(i, j));
-                                        return;
                                     }
                                 }
                                 if (e.Key == Key.Down)
@@ -481,7 +485,6 @@ namespace Puzzle
                                     {
                                         _selectedImage = _pieces[i - 1, j];
                                         swapToSelectedItem(new Tuple<int, int>(i, j));
-                                        return;
                                     }
                                 }
                                 if (e.Key == Key.Left)
@@ -490,7 +493,6 @@ namespace Puzzle
                                     {
                                         _selectedImage = _pieces[i, j + 1];
                                         swapToSelectedItem(new Tuple<int, int>(i, j));
-                                        return;
                                     }
                                 }
                                 if (e.Key == Key.Right)
@@ -499,10 +501,16 @@ namespace Puzzle
                                     {
                                         _selectedImage = _pieces[i, j - 1];
                                         swapToSelectedItem(new Tuple<int, int>(i, j));
-                                        return;
                                     }
                                 }
-                            }
+								if (checkWin() == true)
+								{
+									timer.Stop();
+									MessageBox.Show("You won!!!", "Congratulation");
+									_isPlaying = false;
+								}
+								return;
+							}
                         }
                     }
                 }
@@ -633,33 +641,35 @@ namespace Puzzle
         {
             try
             {
-                _isPlaying = true;
-                var restartButton = sender as Button;
-                uiCanvas.Children.Remove(restartButton);
+                _isPlaying = false;
+				timer.Stop();
 
-                for (int i = 0; i < Rows; i++)
-                {
-                    for (int j = 0; j < Columns; j++)
-                    {
-                        if (_pieces[i, j] != null)
-                        {
-                            uiCanvas.Children.Remove(_pieces[i, j]);
-                        }
-                    }
-                }
+				gameBoardCanvas.Children.Clear();
+				loadImage(_source.UriSource.AbsoluteUri);
 
-                cropImage();
-                Shuffle();
+				Button playButton = new Button();
+				playButton.Height = 90;
+				playButton.Width = 240;
+				playButton.FontSize = 48;
+				playButton.Content = "Play";
+				uiCanvas.Children.Add(playButton);
+				Canvas.SetLeft(playButton, 430);
+				Canvas.SetTop(playButton, 50);
+				playButton.Click += PlayButton_Click;
 
-                minutes = 2;
+				minutes = 2;
                 seconds = 59;
-                timer = new DispatcherTimer();
-                timer.Start();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message.ToString());
             }
         }
-    }
+
+		private void Window_Loaded(object sender, RoutedEventArgs e)
+		{
+			timer.Interval = TimeSpan.FromSeconds(1);
+			timer.Tick += timer_Tick;
+		}
+	}
 }

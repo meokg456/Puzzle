@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Puzzle"
         mc:Ignorable="d"
-        Title="Puzzle" Height="600" Width="800" Keyboard.KeyUp="Window_KeyUp">
+        Title="Puzzle" Height="600" Width="800" Keyboard.KeyUp="Window_KeyUp" Loaded="Window_Loaded">
     <DockPanel LastChildFill="True">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="New image" Click="NewImageMenuItem_Click"></MenuItem>
@@ -13,18 +13,19 @@
             <MenuItem Header="Load" Click="LoadMenuItem_Click"></MenuItem>
             <MenuItem Header="Restart" Click="RestartMenuItem_Click"></MenuItem>
         </Menu>
+		<Canvas Name="gameBoardCanvas" DockPanel.Dock="Top" Height="350"></Canvas>
         <Canvas Name="uiCanvas">
-            <Label Name="lblTime" FontSize="48" Width="225" Height="73" HorizontalContentAlignment="Center" Canvas.Left="430" Canvas.Top="227" RenderTransformOrigin="0.508,0.511" />
-            <Button Name="Left" Click="Left_Click" Width="60" Height="40" Canvas.Left="81" Canvas.Top="409">
+            <Label Name="lblTime" FontSize="48" Width="225" Height="73" HorizontalContentAlignment="Center" Canvas.Left="430" Canvas.Top="50" RenderTransformOrigin="0.508,0.511"/>
+            <Button Name="Left" Click="Left_Click" Width="60" Height="40" Canvas.Left="81" Canvas.Top="80">
                 <Image Source="Images/leftArrow.png"/>
             </Button>
-            <Button Name="Right" Click="Right_Click" Width="60" Height="40" Canvas.Left="181" Canvas.Top="409">
+            <Button Name="Right" Click="Right_Click" Width="60" Height="40" Canvas.Left="181" Canvas.Top="80">
                 <Image Source="Images/rightArrow.png"/>
             </Button>
-            <Button Name="Up" Click="Up_Click" Width="40" Height="60" Canvas.Left="141" Canvas.Top="349" RenderTransformOrigin="0.467,0.525">
+            <Button Name="Up" Click="Up_Click" Width="40" Height="60" Canvas.Left="141" Canvas.Top="20" RenderTransformOrigin="0.467,0.525">
                 <Image Source="Images/upArrow.png"/>
             </Button>
-            <Button Name="Down" Click="Down_Click" Width="40" Height="60" Canvas.Left="141" Canvas.Top="449">
+            <Button Name="Down" Click="Down_Click" Width="40" Height="60" Canvas.Left="141" Canvas.Top="120">
                 <Image Source="Images/downArrow.png"/>
             </Button>
         </Canvas>
